@@ -1,0 +1,72 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+
+
+\begin{document}
+
+\begin{algorithm}[H]
+\caption{Enhanced Task Assignment with Cost–Benefit Analysis}
+\KwIn{$\hat{T}$: task set; $\hat{E}$: MEC server set; $\alpha$, $\beta$, $\gamma$, $\rho$}
+\KwOut{Updated $\hat{T}$ with $\{z_{j,k}^i\}$ and $\{I_j^{\mathrm{succ}}\}$}
+
+\ForEach{$t_j \in \hat{T}$}{
+  $\pi_j = \textbf{false}$\;
+  $I_j^{\mathrm{succ}} \gets  1$\;
+  \If{$\sigma_j = 1$}{
+    $\mathcal{O}_j \gets$ estimate overhead of $t_j$\;
+    
+    \If{$\mathcal{O}_j \le \gamma$}{
+      $\hat{E}_{\mathrm{collab}} \gets \{ e_i \in \hat{E} \mid \mathrm{Norm}(\widetilde{c}_i) \ge \alpha \textbf{ and } \mathrm{Norm}(\widetilde{\theta}_i') \ge \beta \}$\;
+      Sort $\hat{E}_{\mathrm{collab}}$ in ascending order of $\mathrm{Dist}(u_x, e_i)$\;
+      
+      \If{$\hat{E}_{\mathrm{collab}} \neq \emptyset$}{
+        $\Gamma(t_j) \gets \{t_j^1, \dots, t_j^{n_i}\}$\;
+        
+        \ForEach{$t_j^k \in \Gamma(t_j)$}{
+          $c_j^k \gets c_j \cdot r_k$\;
+          $m_j^k \gets m_j \cdot r_k$\;
+          $d_j^k \gets d_j \cdot r_k$\;
+          
+          \ForEach{$e_i \in \hat{E}_{\mathrm{collab}}$}{
+            \If{$\widetilde{c}_i \ge c_j^k$ \textbf{and} $\widetilde{m}_i \ge m_j^k$ \textbf{and} $\widetilde{s}_i \ge s_j^k$}{
+              $z_{j,k}^i \gets 1$\;
+              \If{$e_i \neq e_0$}{
+                $\lambda_{\mathrm{FW}} \gets 2 \cdot \rho \cdot H(e_i, e_y)$\;
+              }
+              $\phi_{j,k}^i \gets \lambda_{\mathrm{TX}} + \lambda_{\mathrm{EX}} + \lambda_{\mathrm{FW}} + \lambda_{\mathrm{RX}}$\;
+              \textbf{break}\;
+            }
+          }
+        }
+        $\pi_j = \textbf{true}$\;
+        \If{$\max_k \phi_{j,k}^i > \tau_j$}{
+          $I_j^{\mathrm{succ}} \gets 0$\;
+        }
+      }
+    }
+  }
+  
+  \If{$\pi_j = \textbf{false}$}{
+  $\Phi_j \gets \emptyset$\;
+  \ForEach{$e_i \in \hat{E}$}{
+    \If{$\widetilde{c}_i \ge c_j$ \textbf{and} $\widetilde{m}_i \ge m_j$ \textbf{and} $\widetilde{s}_i \ge s_j$}{
+      compute $\phi_{j,1}^i$\;
+      add $(e_i, \phi_{j,1}^i)$ to $\Phi_j$\;
+    }
+  }
+  sort $\Phi_j$ by ascending $\phi_{j,1}^i$\;
+  \ForEach{$(e_i, \phi_{j,1}^i) \in \Phi_j$}{
+    \If{$\phi_{j,1}^i \le \tau_j$}{
+      $z_{j,1}^i \gets 1$\;
+      break\;
+    }
+  }
+  \If{no $z_{j,1}^i$ is set}{
+    $I_j^{\mathrm{succ}} \gets 0$\;
+  }
+}
+}
+\end{algorithm}
+
+\end{document}
