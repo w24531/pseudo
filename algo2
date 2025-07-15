@@ -1,0 +1,63 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+
+
+\begin{document}
+
+
+
+\renewcommand{\thealgocf}{2}
+
+\begin{algorithm}[H]
+\caption{Task Execution, Scheduling and Exception Handling}
+\KwIn{$\hat{T}$: task set; $\hat{E}$: MEC server set; $t$: current time; $\delta_{\text{reb}}$: rebalancing threshold}
+\KwOut{Updated $\hat{T}$ and $\hat{E}$ with scheduling results and status}
+
+\ForEach{$e_i \in \hat{E}$}{
+    $\hat{T}' \gets$ collect unfinished tasks on $e_i$, sorted by cost metric\;
+  
+  \ForEach{$t_j \in \hat{T}'$}{
+    \If{$\tau_j \le t$}{
+      $I_j^{\text{succ}} \gets 0$\;
+      continue\;
+    }
+
+    \If{$\Gamma(t_j) \neq \{t_j\}$}{
+      select $t_j^k \in \Gamma(t_j)$ assigned to $e_i$\;
+      \uIf{$e_i$ can execute $t_j^k$ before $\tau_j$}{
+        schedule $t_j^k$ on available core and update finish time\;
+      }
+      \uElseIf{$t_j$ has assigned $e_{\text{backup}} \in \hat{E}$}{
+        migrate $t_j^k$ to $e_{\text{backup}}$ and enqueue\;
+      }
+      \Else{
+        $I_j^{\text{succ}} \gets 0$\;
+      }
+    }
+    \Else{
+      \uIf{$e_i$ can execute $t_j$ before $\tau_j$}{
+        schedule $t_j$ on available core and update finish time\;
+      }
+      \uElseIf{$t_j$ has assigned $e_{\text{backup}} \in \hat{E}$}{
+        migrate $t_j$ to $e_{\text{backup}}$ and enqueue\;
+      }
+      \Else{
+        $I_j^{\text{succ}} \gets 0$\;
+      }
+    }
+  }
+}
+
+\If{system load ratio $> \delta_{\text{reb}}$}{
+  \ForEach{overloaded $e_i \in \hat{E}$}{
+    select migration candidates with low urgency and small workload\;
+    \ForEach{$t_j \in$ candidate set}{
+      find $e_y \in \hat{E}$ such that $e_y$ is underloaded and can execute $t_j$\;
+      migrate $t_j$ to $e_y$ and update $\{z_{j,1}^i\}$\;
+    }
+  }
+}
+\end{algorithm}
+
+\end{document}
